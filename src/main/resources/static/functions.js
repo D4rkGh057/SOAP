@@ -20,66 +20,7 @@ $(document).ready(function () {
     });
     $('#search-form').submit(function (event) {
         event.preventDefault();
-
-        // Obtener el valor del input de búsqueda
-        var searchTerm = $('#search-input').val();
-
-        // Realizar la petición de búsqueda
-        $.ajax({
-            url: 'http://localhost:8080/rest/buscarPorCedula/' + searchTerm,
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                // Limpiar la tabla
-                $('#tblUser tbody').html("");
-
-                // Crear una fila con los resultados de la búsqueda
-                var btnEdit = '<button type="button" class="btn btn-primary btnEdit" data-bs-toggle="modal" data-bs-target="#editUserModal"> Editar</button>';
-                var btnDelete = '<button type="button" class="btn btn-danger btnDelete" data-bs-toggle="modal" data-bs-target="#deleteUserModal"> Eliminar</button>';
-                var html = "<tr>";
-                html += "<td>" + data.cedula + "</td>";
-                html += "<td>" + data.nombre + "</td>";
-                html += "<td>" + data.apellido + "</td>";
-                html += "<td>" + data.direccion + "</td>";
-                html += "<td>" + data.telefono + "</td>" + "<td>" + btnEdit + " " + btnDelete + "</td>";
-                html += "</tr>";
-                $('#tblUser tbody').html(html);
-
-                // Asignar el evento click para los botones de editar y eliminar
-                $('.btnEdit').click(function (event) {
-                    // Código para editar
-                    // ...
-                });
-
-                $('.btnDelete').click(function (event) {
-                    // Código para eliminar
-                    // ...
-                });
-            },
-            error: function (error) {
-                // Manejar el error, por ejemplo, mostrar un mensaje de error
-                console.error("Error en la búsqueda:", error);
-                alert("No se encontraron resultados para la cédula proporcionada.");
-            }
-        });
-        $('#edit-user-form').submit(function (event) {
-            event.preventDefault();
-            $.ajax({
-                url: "http://localhost:8080/rest/edit/" + $('#eCEDULA').val(),
-                type: "PUT",
-                dataType: "json",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    "nombre": $('#eNOMBRE').val(),
-                    "apellido": $('#eAPELLIDO').val(),
-                    "direccion": $('#eDIRECCION').val(),
-                    "telefono": $('#eTELEFONO').val(),
-                }),
-                success: function (response) {
-                    loadUsers();
-                }
-            });
-        });
+        loadUsersbyCedula();
 
     });
     $('#edit-user-form').submit(function (event) {
@@ -102,6 +43,60 @@ $(document).ready(function () {
     });
 });
 
+function loadUsersbyCedula() {
+    // Realizar la petición de búsqueda
+    $.ajax({
+        url: 'http://localhost:8080/rest/buscarPorCedula/' + $('#search-input').val(),
+        type: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            // Limpiar la tabla
+            $('#tblUser tbody').html("");
+            // Crear una fila con los resultados de la búsqueda
+            var btnEdit = '<button type="button" class="btn btn-primary btnEdit" data-bs-toggle="modal" data-bs-target="#editUserModal"> Editar</button>';
+            var btnDelete = '<button type="button" class="btn btn-danger btnDelete" data-bs-toggle="modal" data-bs-target="#deleteUserModal"> Eliminar</button>';
+            var html = "<tr>";
+            html += "<td>" + data.cedula + "</td>";
+            html += "<td>" + data.nombre + "</td>";
+            html += "<td>" + data.apellido + "</td>";
+            html += "<td>" + data.direccion + "</td>";
+            html += "<td>" + data.telefono + "</td>" + "<td>" + btnEdit + " " + btnDelete + "</td>";
+            html += "</tr>";
+            $('#tblUser tbody').html(html);
+
+            // Asignar el evento click para los botones de editar y eliminar
+            $('.btnEdit').click(function (event) {
+                event.preventDefault();
+                // Get the values from the row where the button was clicked
+                var cedula = $(this).closest('tr').find('td:eq(0)').text();
+                var nombre = $(this).closest('tr').find('td:eq(1)').text();
+                var apellido = $(this).closest('tr').find('td:eq(2)').text();
+                var direccion = $(this).closest('tr').find('td:eq(3)').text();
+                var telefono = $(this).closest('tr').find('td:eq(4)').text();
+
+                // Set the values in the modal inputs
+                $('#eCEDULA').val(cedula);
+                $('#eNOMBRE').val(nombre);
+                $('#eAPELLIDO').val(apellido);
+                $('#eDIRECCION').val(direccion);
+                $('#eTELEFONO').val(telefono);
+            });
+            $('.btnDelete').click(function (event) {
+                event.preventDefault();
+                var cedula = $(this).closest('tr').find('td:eq(0)').text();
+                // Realizar la petición de eliminación
+                $.ajax({
+                    url: 'http://localhost:8080/rest/delete/' + cedula,
+                    type: 'DELETE',
+                    success: function (result) {
+                        loadUsers();
+                    }
+                });
+            });
+        }
+    });
+}
+
 function loadUsers() {
     $.ajax({
         url: "http://localhost:8080/rest/all",
@@ -122,7 +117,7 @@ function loadUsers() {
                 html += "</tr>";
             }
             $('#tblUser tbody').html(html);
-            $('.btnEdit').click(function (event) {
+            $('.btnEdit').off('click').on('click', function (event) {
                 event.preventDefault();
                 // Get the values from the row where the button was clicked
                 var cedula = $(this).closest('tr').find('td:eq(0)').text();
@@ -138,7 +133,7 @@ function loadUsers() {
                 $('#eDIRECCION').val(direccion);
                 $('#eTELEFONO').val(telefono);
             });
-            $('.btnDelete').click(function (event) {
+            $('.btnDelete').off('click').on('click', function (event) {
                 event.preventDefault();
                 var cedula = $(this).closest('tr').find('td:eq(0)').text();
                 // Realizar la petición de eliminación
