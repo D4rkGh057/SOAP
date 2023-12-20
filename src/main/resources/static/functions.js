@@ -18,6 +18,70 @@ $(document).ready(function () {
             }
         });
     });
+    $('#search-form').submit(function (event) {
+        event.preventDefault();
+
+        // Obtener el valor del input de búsqueda
+        var searchTerm = $('#search-input').val();
+
+        // Realizar la petición de búsqueda
+        $.ajax({
+            url: 'http://localhost:8080/rest/buscarPorCedula/' + searchTerm,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                // Limpiar la tabla
+                $('#tblUser tbody').html("");
+
+                // Crear una fila con los resultados de la búsqueda
+                var btnEdit = '<button type="button" class="btn btn-primary btnEdit" data-bs-toggle="modal" data-bs-target="#editUserModal"> Editar</button>';
+                var btnDelete = '<button type="button" class="btn btn-danger btnDelete" data-bs-toggle="modal" data-bs-target="#deleteUserModal"> Eliminar</button>';
+                var html = "<tr>";
+                html += "<td>" + data.cedula + "</td>";
+                html += "<td>" + data.nombre + "</td>";
+                html += "<td>" + data.apellido + "</td>";
+                html += "<td>" + data.direccion + "</td>";
+                html += "<td>" + data.telefono + "</td>" + "<td>" + btnEdit + " " + btnDelete + "</td>";
+                html += "</tr>";
+                $('#tblUser tbody').html(html);
+
+                // Asignar el evento click para los botones de editar y eliminar
+                $('.btnEdit').click(function (event) {
+                    // Código para editar
+                    // ...
+                });
+
+                $('.btnDelete').click(function (event) {
+                    // Código para eliminar
+                    // ...
+                });
+            },
+            error: function (error) {
+                // Manejar el error, por ejemplo, mostrar un mensaje de error
+                console.error("Error en la búsqueda:", error);
+                alert("No se encontraron resultados para la cédula proporcionada.");
+            }
+        });
+        $('#edit-user-form').submit(function (event) {
+            event.preventDefault();
+            $.ajax({
+                url: "http://localhost:8080/rest/edit/" + $('#eCEDULA').val(),
+                type: "PUT",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "nombre": $('#eNOMBRE').val(),
+                    "apellido": $('#eAPELLIDO').val(),
+                    "direccion": $('#eDIRECCION').val(),
+                    "telefono": $('#eTELEFONO').val(),
+                }),
+                success: function (response) {
+                    loadUsers();
+                }
+            });
+        });
+
+    });
     $('#edit-user-form').submit(function (event) {
         event.preventDefault();
         $.ajax({
